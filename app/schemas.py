@@ -30,7 +30,7 @@ class ProductPublic(SQLModel):
     id: uuid.UUID
     title: str
     description: str
-    price: Decimal
+    price: Decimal = Field(default=Decimal("0.00"))
     quantity: int
     created_at: datetime
 
