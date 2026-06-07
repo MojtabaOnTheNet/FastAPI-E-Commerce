@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import Annotated, Any
 import uuid
 from sqlmodel import select, func
-from ..dependency import SessionDep
+from ..dependency import SessionDep, CurrentUserDep
 from ..schemas import *
 from ..models import *
 
@@ -22,7 +22,11 @@ async def read_all_products(session: SessionDep, limit: Annotated[int, Query(le=
 
 
 @router.post("/", status_code=201, response_model=ProductPublic)
-async def create_product(session: SessionDep, product_request_model: ProductCreate):
+async def create_product(session: SessionDep, user: CurrentUserDep, product_request_model: ProductCreate):
+
+    if not user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions.")
+
     product = Product.model_validate(product_request_model)
 
     session.add(product)
@@ -32,7 +36,11 @@ async def create_product(session: SessionDep, product_request_model: ProductCrea
 
 
 @router.get("/{product_id}", status_code=200, response_model=ProductPublic)
-async def read_one_product(session: SessionDep, product_id: uuid.UUID):
+async def read_one_product(session: SessionDep, user: CurrentUserDep, product_id: uuid.UUID):
+
+    if not user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions.")
+
     product = session.get(Product, product_id)
 
     if not product:
@@ -42,7 +50,11 @@ async def read_one_product(session: SessionDep, product_id: uuid.UUID):
 
 
 @router.put("/{product_id}", status_code=200, response_model=ProductPublic)
-async def update_one_product(session: SessionDep, product_id: uuid.UUID, product_request_model: ProductUpdate):
+async def update_one_product(session: SessionDep, user: CurrentUserDep, product_id: uuid.UUID, product_request_model: ProductUpdate):
+
+    if not user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions.")
+
     product_db = session.get(Product, product_id)
 
     if not product_db:
@@ -59,7 +71,11 @@ async def update_one_product(session: SessionDep, product_id: uuid.UUID, product
 
 
 @router.delete("/{product_id}", status_code=204)
-async def delete_one_product(session: SessionDep, product_id: uuid.UUID):
+async def delete_one_product(session: SessionDep, user: CurrentUserDep, product_id: uuid.UUID):
+
+    if not user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions.")
+
     product = session.get(Product, product_id)
 
     if not product:
