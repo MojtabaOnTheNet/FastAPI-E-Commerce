@@ -36,10 +36,7 @@ async def create_product(session: SessionDep, user: CurrentUserDep, product_requ
 
 
 @router.get("/{product_id}", status_code=200, response_model=ProductPublic)
-async def read_one_product(session: SessionDep, user: CurrentUserDep, product_id: uuid.UUID):
-
-    if not user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+async def read_one_product(session: SessionDep, product_id: uuid.UUID):
 
     product = session.get(Product, product_id)
 
