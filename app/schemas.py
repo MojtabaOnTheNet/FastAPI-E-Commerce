@@ -38,6 +38,11 @@ class ProductsPublic(SQLModel):
     data: list[ProductPublic]
     count: int
 
+class ProductCartPublic(SQLModel):
+    title: str
+    description: str
+    price: Decimal = Field(default=Decimal("0.00"))
+
 
 # User 👤
 
@@ -77,6 +82,7 @@ class CartItemUpdate(CartItemBase):
 class CartItemRead(SQLModel):
     id: uuid.UUID
     product_id: uuid.UUID
+    product: ProductCartPublic
     quantity: int
 
 # Cart 🛒
@@ -86,7 +92,7 @@ class CartBase(SQLModel):
     id: uuid.UUID
     user_id: uuid.UUID
     items: list[CartItemRead]
-    total: Decimal = Field(default=Decimal("0.00"))
+    total_amount: Decimal = Field(default=Decimal("0.00"))
 
 
 class CartRead(CartBase):

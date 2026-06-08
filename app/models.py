@@ -28,6 +28,7 @@ class Product(SQLModel, table=True):
     created_at: datetime = created_at_field
     price: Decimal = Field(default=Decimal("0.00"), sa_type=Numeric(10, 2))
     quantity: int = Field(ge=0, default=0)
+    cart_items: list["CartItem"] = Relationship(back_populates="product")
 
 
 class Cart(SQLModel, table=True):
@@ -40,6 +41,7 @@ class CartItem(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     cart_id: uuid.UUID = Field(foreign_key="cart.id", index=True)
     product_id: uuid.UUID = Field(foreign_key="product.id", index=True)
+    product: Product = Relationship(back_populates="cart_items")
     quantity: int = Field(default=1, ge=1)
     cart: Cart | None = Relationship(back_populates="items")
 
