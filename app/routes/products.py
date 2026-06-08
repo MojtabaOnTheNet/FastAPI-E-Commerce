@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
-from typing import Annotated, Any
+from typing import Annotated
 import uuid
 from sqlmodel import select, func
 from ..dependency import SessionDep, CurrentUserDep

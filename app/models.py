@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlmodel import Field, SQLModel, DateTime, Numeric
+from sqlmodel import Field, SQLModel, DateTime, Numeric, Relationship
 from decimal import Decimal
 from pydantic import EmailStr
 
@@ -29,9 +29,11 @@ class Product(SQLModel, table=True):
     price: Decimal = Field(default=Decimal("0.00"), sa_type=Numeric(10, 2))
     quantity: int = Field(ge=0, default=0)
 
+
 class Cart(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True, unique=True)
+    items: list["CartItem"] = Relationship(back_populates="cart")
 
 
 class CartItem(SQLModel, table=True):
@@ -39,6 +41,7 @@ class CartItem(SQLModel, table=True):
     cart_id: uuid.UUID = Field(foreign_key="cart.id", index=True)
     product_id: uuid.UUID = Field(foreign_key="product.id", index=True)
     quantity: int = Field(default=1, ge=1)
+    cart: Cart | None = Relationship(back_populates="items")
 
 class Order(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)

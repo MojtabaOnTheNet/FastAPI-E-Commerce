@@ -77,16 +77,16 @@ class CartItemUpdate(CartItemBase):
 class CartItemRead(SQLModel):
     id: uuid.UUID
     product_id: uuid.UUID
-    title: str
-    price: Decimal
     quantity: int
 
 # Cart 🛒
 
 # Models returned via API 👇
 class CartBase(SQLModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
     items: list[CartItemRead]
-    total: Decimal
+    total: Decimal = Field(default=Decimal("0.00"))
 
 
 class CartRead(CartBase):

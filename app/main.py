@@ -1,9 +1,10 @@
 from fastapi import FastAPI
-from .routes import products, auth
+from .routes import products, auth, cart
 
 app = FastAPI(title="E Commerce")
 
 app.include_router(products.router)
+app.include_router(cart.router)
 app.include_router(auth.router)
 
 """ @app.get("/", status_code=200)
