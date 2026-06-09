@@ -4,8 +4,9 @@ from pydantic import ValidationError
 from jwt.exceptions import InvalidTokenError
 from datetime import datetime, timedelta, timezone
 import jwt
+from .config import settings
 
-SECRET_KEY = "01c3492ba45e1fb2cd90f3a4f04163a2363662134e03a9fd4e4b0ac6ce3334ea"
+SECRET_KEY = settings.SECRET_KEY
 
 password_hash = PasswordHash.recommended()
 ALGORITHM = "HS256"
