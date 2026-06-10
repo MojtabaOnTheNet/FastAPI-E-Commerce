@@ -3,11 +3,17 @@ from datetime import datetime, timezone
 from sqlmodel import Field, SQLModel, DateTime, Numeric, Relationship
 from decimal import Decimal
 from pydantic import EmailStr
+from enum import Enum
 
 def get_datetime_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 created_at_field = Field(default_factory=get_datetime_utc, sa_type=DateTime(timezone=True))
+
+class OrderStatus(str, Enum):
+    pending = "pending"
+    fulfilled = "fulfilled"
+    cancelled = "cancelled"
 
 
 
@@ -34,7 +40,7 @@ class Product(SQLModel, table=True):
 class Cart(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True, unique=True)
-    items: list["CartItem"] = Relationship(back_populates="cart")
+    items: list["CartItem"] = Relationship(back_populates="cart", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 
 class CartItem(SQLModel, table=True):
@@ -49,7 +55,10 @@ class Order(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
     total_amount: Decimal = Field(default=Decimal("0.00"), sa_type=Numeric(10, 2))
+    status: OrderStatus = OrderStatus.pending
     created_at: datetime = created_at_field
+    order_items: list["OrderItem"] = Relationship(back_populates="order")
+
 
 class OrderItem(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -57,5 +66,7 @@ class OrderItem(SQLModel, table=True):
     product_id: uuid.UUID = Field(foreign_key="product.id", index=True)
     quantity: int = Field(default=1, ge=1)
     price_at_purchase: Decimal = Field(default=Decimal("0.00"), sa_type=Numeric(10, 2))
+    order: Order | None = Relationship(back_populates="order_items")
+
 
 

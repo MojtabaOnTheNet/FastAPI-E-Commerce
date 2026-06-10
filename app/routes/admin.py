@@ -76,9 +76,6 @@ async def delete_any_cart(user_id: uuid.UUID, session: SessionDep):
 
     if not cart:
         raise HTTPException(status_code=404, detail="No cart found.")
-    
-    for item in cart.items:
-        session.delete(item)
 
     session.delete(cart)
     session.commit()

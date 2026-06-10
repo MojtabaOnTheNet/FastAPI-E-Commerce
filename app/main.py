@@ -1,14 +1,15 @@
 from fastapi import FastAPI
-from .routes import products, auth, cart, admin, user
+from .routes import products, auth, cart, admin, user, order
 from .core.config import settings
 
-app = FastAPI(title="E Commerce")
+app = FastAPI(title="E Commerce", description="A portfolio project demonstrating an E-Commerce backend. 🛒")
 
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(user.router)
 app.include_router(products.router)
 app.include_router(cart.router)
+app.include_router(order.router)
 
 """ @app.get("/", status_code=200)
 async def root():

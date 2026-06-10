@@ -2,6 +2,7 @@ from sqlmodel import Field, SQLModel, DateTime, Numeric
 from pydantic import EmailStr, field_validator
 from datetime import datetime
 from decimal import Decimal
+from .models import OrderStatus
 import uuid
 
 
@@ -133,9 +134,10 @@ class CartsPrivate(SQLModel):
 
 # Models returned via API 👇
 class OrderItemBase(SQLModel):
+    id: uuid.UUID
     product_id: uuid.UUID
     quantity: int
-    price_at_purchase: Decimal
+    price_at_purchase: Decimal = Field(default=Decimal("0.00"))
 
 class OrderItemRead(OrderItemBase):
     pass
@@ -145,11 +147,16 @@ class OrderItemRead(OrderItemBase):
 # Models returned via API 👇
 class OrderBase(SQLModel):
     id: uuid.UUID
-    total_amount: Decimal
+    user_id: uuid.UUID
+    total_amount: Decimal = Field(default=Decimal("0.00"))
     created_at: datetime
+    status: OrderStatus
 
 class OrderRead(OrderBase):
-    items: list[OrderItemRead]
+    order_items: list[OrderItemRead]
+
+class OrdersRead(SQLModel):
+    orders: list[OrderRead]
 
 
 # Token 🔑
