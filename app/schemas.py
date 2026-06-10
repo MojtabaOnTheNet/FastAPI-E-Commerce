@@ -1,5 +1,5 @@
 from sqlmodel import Field, SQLModel, DateTime, Numeric
-from pydantic import EmailStr
+from pydantic import EmailStr, field_validator
 from datetime import datetime
 from decimal import Decimal
 import uuid
@@ -51,17 +51,44 @@ class UserBase(SQLModel):
     email: EmailStr = Field(max_length=100)
     full_name: str | None = Field(default=None, max_length=100)
 
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.lower()
+
 class UserRegister(UserBase):
     password: str
+    confirm_password: str
 
 class UserLogin(SQLModel):
     email: EmailStr
     password: str
 
+class UserChangePassword(SQLModel):
+    password: str
+    new_password: str
+    confirm_new_password: str
+    
+
 # Models returned via API 👇
 class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime
+
+# Models only for admin 👇
+class UserPrivate(UserBase):
+    id: uuid.UUID
+    created_at: datetime
+    is_superuser: bool
+    is_active: bool
+
+class UsersPrivate(SQLModel):
+    users: list[UserPrivate]
+
+class UserPrivateChange(SQLModel):
+    is_superuser: bool = False
+    is_active: bool = True
+
 
 # Add (UsersPublic) later for admin functionality
 
@@ -97,6 +124,10 @@ class CartBase(SQLModel):
 
 class CartRead(CartBase):
     pass
+
+# Models only for admin 👇
+class CartsPrivate(SQLModel):
+    carts: list[CartRead]
 
 # Order Item 🚚📦
 

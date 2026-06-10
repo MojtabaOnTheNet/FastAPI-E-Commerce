@@ -8,17 +8,12 @@ from ..models import *
 
 router = APIRouter(prefix="/cart", tags=["Cart"])
 
-
-""" # calculate total price of the cart
-def update_cart_total(session: SessionDep, cart: Cart):
-    
-    session.add(cart)
-    session.commit()
-    session.refresh(cart) """
-
 @router.get("/", status_code=200, response_model=CartRead)
 async def read_all_cart_items(user: CurrentUserDep, session: SessionDep):
     cart = session.exec(select(Cart).where(Cart.user_id == user.id)).first()
+
+    if not cart:
+        raise HTTPException(status_code=404, detail="No cart found.")
 
     # Calculate the total price of the cart
     total = session.exec(
@@ -26,9 +21,7 @@ async def read_all_cart_items(user: CurrentUserDep, session: SessionDep):
         .join(Product, CartItem.product_id == Product.id)
         .where(CartItem.cart_id == cart.id)
     ).one()
-
-    if not cart:
-        raise HTTPException(status_code=404, detail="No cart found.")
+    
     if not len(cart.items):
         raise HTTPException(status_code=404, detail="Cart is empty.")
     
@@ -41,6 +34,11 @@ async def read_all_cart_items(user: CurrentUserDep, session: SessionDep):
 @router.post("/", status_code=201, response_model=CartItemRead)
 async def add_cart_item(user: CurrentUserDep, session: SessionDep, request_cart_item: CartItemCreate):
     cart = session.exec(select(Cart).where(Cart.user_id == user.id)).first()
+
+    # Handle product validation
+    product = session.exec(select(Product).where(Product.id == request_cart_item.product_id)).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="No product found.")
 
     # If no cart exists, create one
     if not cart:
@@ -63,6 +61,7 @@ async def add_cart_item(user: CurrentUserDep, session: SessionDep, request_cart_
         session.add(cart_item)
         session.commit()
         session.refresh(cart_item)
+        
     # Else if the cart item exists, update the quantity
     else:
         cart_item.quantity += request_cart_item.quantity
@@ -75,7 +74,11 @@ async def add_cart_item(user: CurrentUserDep, session: SessionDep, request_cart_
 
 @router.get("/{cart_item_id}", status_code=200, response_model=CartItemRead)
 async def read_cart_item(user: CurrentUserDep, session: SessionDep, cart_item_id: uuid.UUID):
-    cart_item = session.exec(select(CartItem).join(Cart).where(Cart.user_id == user.id)).first()
+    cart_item = session.exec(
+        select(CartItem)
+        .join(Cart)
+        .where(Cart.user_id == user.id)
+        .where(CartItem.id == cart_item_id)).first()
 
     if not cart_item:
         raise HTTPException(status_code=404, detail="No cart item found.")
@@ -84,7 +87,11 @@ async def read_cart_item(user: CurrentUserDep, session: SessionDep, cart_item_id
 
 @router.put("/{cart_item_id}", status_code=201, response_model=CartItemUpdate)
 async def update_cart_item(user: CurrentUserDep, session: SessionDep, cart_item_id: uuid.UUID, request_quantity: Annotated[int, Query(ge=1, lt=1000)]):
-    cart_item = session.exec(select(CartItem).join(Cart).where(Cart.user_id == user.id)).first()
+    cart_item = session.exec(
+        select(CartItem)
+        .join(Cart)
+        .where(Cart.user_id == user.id)
+        .where(CartItem.id == cart_item_id)).first()
 
     if not cart_item:
         raise HTTPException(status_code=404, detail="No cart item found.")
@@ -98,12 +105,24 @@ async def update_cart_item(user: CurrentUserDep, session: SessionDep, cart_item_
 
     return cart_item
 
-@router.delete("/{cart_item_d}", status_code=204)
-async def update_cart_item(user: CurrentUserDep, session: SessionDep, cart_item_id: uuid.UUID):
-    cart_item = session.exec(select(CartItem).join(Cart).where(Cart.user_id == user.id)).first()
+@router.delete("/{cart_item_id}", status_code=204)
+async def delete_cart_item(user: CurrentUserDep, session: SessionDep, cart_item_id: uuid.UUID):
+    cart_item = session.exec(
+        select(CartItem)
+        .join(Cart)
+        .where(Cart.user_id == user.id)
+        .where(CartItem.id == cart_item_id)).first()
 
     if not cart_item:
         raise HTTPException(status_code=404, detail="No cart item found.")
     
     session.delete(cart_item)
     session.commit()
+
+    # Delete entire card if no items remain
+    cart = session.exec(select(Cart).where(Cart.user_id == user.id)).first()
+
+    if not len(cart.items):
+        session.delete(cart)
+        session.commit()
+
