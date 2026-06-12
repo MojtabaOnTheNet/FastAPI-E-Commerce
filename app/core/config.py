@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     # Runs only when there is no secret key in .env
     SECRET_KEY: str = secrets.token_urlsafe(32)
 
+    SQLITE_URL: str
+    SQLITE_TEST_URL: str
+
+    TEST_USER_EMAIL: EmailStr = "test@example.com"
     INITIAL_SUPERUSER: EmailStr
     INITIAL_SUPERUSER_PASSWORD: str
 
