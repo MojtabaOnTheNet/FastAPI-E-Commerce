@@ -80,6 +80,25 @@ async def delete_any_cart(user_id: uuid.UUID, session: SessionDep):
     session.delete(cart)
     session.commit()
 
+@router.get("/orders", status_code=200, response_model=OrdersReadPrivate)
+async def read_all_orders(session: SessionDep):
+    orders = session.exec(select(Order)).all()
+
+    if not orders:
+        raise HTTPException(status_code=404, detail="No order found.")
+    
+    return OrdersReadPrivate(orders=orders)
+
+@router.put("/orders/{order_id}", status_code=204)
+async def change_order_status(order_id: uuid.UUID, session: SessionDep, request_change_status: OrderChangeStatusPrivate):
+    order = session.get(Order, order_id)
+
+    order.status = request_change_status.status
+
+    session.add(order)
+    session.commit()
+    session.refresh(order)
+
 @router.get("/users/", status_code=200, response_model=UsersPrivate)
 async def read_all_users(session: SessionDep):
     users = session.exec(select(User)).all()
@@ -88,7 +107,7 @@ async def read_all_users(session: SessionDep):
 
 @router.put("/users/{user_id}", status_code=204)
 async def change_user_privileges(session: SessionDep, user_id: uuid.UUID, request_change_model: UserPrivateChange):
-    user = session.exec(select(User).where(User.id == user_id)).first()
+    user = session.get(User, user_id)
 
     change_data = request_change_model.model_dump(exclude_unset=True)
     user.sqlmodel_update(change_data)
@@ -99,7 +118,7 @@ async def change_user_privileges(session: SessionDep, user_id: uuid.UUID, reques
 
 @router.delete("/users/{user_id}", status_code=204)
 async def delete_user(session: SessionDep, user_id: uuid.UUID):
-    user = session.exec(select(User).where(User.id == user_id)).first()
+    user = session.get(User, user_id)
 
     session.delete(user)
     session.commit()

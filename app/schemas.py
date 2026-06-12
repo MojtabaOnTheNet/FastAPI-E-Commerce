@@ -158,6 +158,13 @@ class OrderRead(OrderBase):
 class OrdersRead(SQLModel):
     orders: list[OrderRead]
 
+# Models only for admin 👇
+class OrdersReadPrivate(SQLModel):
+    orders: list[OrderRead]
+
+class OrderChangeStatusPrivate(SQLModel):
+    status: OrderStatus
+
 
 # Token 🔑
 class Token(SQLModel):
