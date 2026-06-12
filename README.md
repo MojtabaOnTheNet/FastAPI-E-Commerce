@@ -62,6 +62,8 @@ FastAPI-E-Commerce/
 │   │
 │   └── main.py
 │
+├── tests/
+│
 ├── alembic/
 ├── tests/ # Coming soon
 ├── requirements.txt
