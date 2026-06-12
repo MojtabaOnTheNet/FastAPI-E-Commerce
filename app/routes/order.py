@@ -28,29 +28,39 @@ async def checkout_cart(user: CurrentUserDep, session: SessionDep):
         select(func.sum(CartItem.quantity * Product.price))
         .join(Product, CartItem.product_id == Product.id)
         .where(CartItem.cart_id == cart.id)
-    ).one()
-
-    
+    ).one() or 0
 
     # create a new order
     order = Order(user_id = user.id, total_amount=total)
     session.add(order)
-    session.commit()
-    session.refresh(order)
+    session.flush()
 
     # add items to the order
     for item in cart_items:
+
+        product = session.get(Product, item.product_id)
+
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found.")
+
         order_item = OrderItem(
             order_id = order.id,
             product_id = item.product_id,
             quantity = item.quantity,
-            price_at_purchase = item.product.price
+            price_at_purchase = product.price
         )
+
+        #  if product out of stock, raise exception and cancel the order
+        if product.quantity < order_item.quantity:
+            session.rollback()
+            raise HTTPException(status_code=400, detail="Quantity exceeds product stock.")
+        
+        # reduce products from stock
+        product.quantity -= order_item.quantity
+        
         session.add(order_item)
-        session.commit()
-        session.refresh(order_item)
     
-    # after everything is done, delete the cart
+    # after everything is done, delete the cart, and commit changes
     session.delete(cart)
     session.commit()
 

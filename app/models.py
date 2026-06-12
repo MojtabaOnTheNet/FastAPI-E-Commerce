@@ -57,7 +57,7 @@ class Order(SQLModel, table=True):
     total_amount: Decimal = Field(default=Decimal("0.00"), sa_type=Numeric(10, 2))
     status: OrderStatus = OrderStatus.pending
     created_at: datetime = created_at_field
-    order_items: list["OrderItem"] = Relationship(back_populates="order")
+    order_items: list["OrderItem"] = Relationship(back_populates="order", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 
 class OrderItem(SQLModel, table=True):
