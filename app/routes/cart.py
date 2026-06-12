@@ -85,7 +85,7 @@ async def read_cart_item(user: CurrentUserDep, session: SessionDep, cart_item_id
     
     return cart_item
 
-@router.put("/{cart_item_id}", status_code=201, response_model=CartItemUpdate)
+@router.put("/{cart_item_id}", status_code=200, response_model=CartItemUpdate)
 async def update_cart_item(user: CurrentUserDep, session: SessionDep, cart_item_id: uuid.UUID, request_quantity: Annotated[int, Query(ge=1, lt=1000)]):
     cart_item = session.exec(
         select(CartItem)
@@ -101,7 +101,6 @@ async def update_cart_item(user: CurrentUserDep, session: SessionDep, cart_item_
     session.add(cart_item)
     session.commit()
     session.refresh(cart_item)
-
 
     return cart_item
 

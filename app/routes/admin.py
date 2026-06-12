@@ -8,7 +8,7 @@ from ..models import *
 
 router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(get_current_active_superuser)])
 
-@router.post("/product", status_code=201, response_model=ProductPublic)
+@router.post("/products", status_code=201, response_model=ProductPublic)
 async def create_product(session: SessionDep, product_request_model: ProductCreate):
 
     product = Product.model_validate(product_request_model)
@@ -18,7 +18,7 @@ async def create_product(session: SessionDep, product_request_model: ProductCrea
     session.refresh(product)
     return product
 
-@router.put("/product/{product_id}", status_code=204)
+@router.put("/products/{product_id}", status_code=204)
 async def update_one_product(session: SessionDep, product_id: uuid.UUID, product_request_model: ProductUpdate):
 
     product_db = session.get(Product, product_id)
@@ -35,7 +35,7 @@ async def update_one_product(session: SessionDep, product_id: uuid.UUID, product
     session.refresh(product_db)
 
 
-@router.delete("/product/{product_id}", status_code=204)
+@router.delete("/products/{product_id}", status_code=204)
 async def delete_one_product(session: SessionDep, product_id: uuid.UUID):
 
     product = session.get(Product, product_id)
@@ -85,13 +85,16 @@ async def read_all_orders(session: SessionDep):
     orders = session.exec(select(Order)).all()
 
     if not orders:
-        raise HTTPException(status_code=404, detail="No order found.")
+        raise HTTPException(status_code=404, detail="No orders found.")
     
     return OrdersReadPrivate(orders=orders)
 
 @router.put("/orders/{order_id}", status_code=204)
 async def change_order_status(order_id: uuid.UUID, session: SessionDep, request_change_status: OrderChangeStatusPrivate):
     order = session.get(Order, order_id)
+
+    if not order:
+        raise HTTPException(status_code=404, detail="No order found.")
 
     order.status = request_change_status.status
 
@@ -109,6 +112,9 @@ async def read_all_users(session: SessionDep):
 async def change_user_privileges(session: SessionDep, user_id: uuid.UUID, request_change_model: UserPrivateChange):
     user = session.get(User, user_id)
 
+    if not user:
+        raise HTTPException(status_code=404, detail="No user found.")
+
     change_data = request_change_model.model_dump(exclude_unset=True)
     user.sqlmodel_update(change_data)
 
@@ -119,6 +125,9 @@ async def change_user_privileges(session: SessionDep, user_id: uuid.UUID, reques
 @router.delete("/users/{user_id}", status_code=204)
 async def delete_user(session: SessionDep, user_id: uuid.UUID):
     user = session.get(User, user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="No user found.")
 
     session.delete(user)
     session.commit()

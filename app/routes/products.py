@@ -14,9 +14,6 @@ router = APIRouter(prefix="/products", tags=["Products"])
 async def read_all_products(session: SessionDep, limit: Annotated[int, Query(le=100)] = 100, offset: int = 0):
     products = session.exec(select(Product).offset(offset).limit(limit)).all()
     count = session.exec(select(func.count(Product.id))).one()
-
-    if not len(products):
-        raise HTTPException(status_code=404, detail="No products found.")
     
     return {"data": products, "count": count}
 

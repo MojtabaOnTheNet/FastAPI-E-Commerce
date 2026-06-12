@@ -109,6 +109,7 @@ class CartItemUpdate(CartItemBase):
 # Models returned via API 👇
 class CartItemRead(SQLModel):
     id: uuid.UUID
+    cart_id: uuid.UUID
     product_id: uuid.UUID
     product: ProductCartPublic
     quantity: int

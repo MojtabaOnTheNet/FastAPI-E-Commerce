@@ -6,7 +6,7 @@ from ..dependency import SessionDep, CurrentUserDep
 from ..schemas import *
 from ..models import *
 
-router = APIRouter(prefix="/order", tags=["Order"])
+router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
 @router.post("/checkout", status_code=201)
