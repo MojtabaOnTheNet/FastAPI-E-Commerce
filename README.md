@@ -24,17 +24,17 @@ It includes core e-commerce features like **authentication, product management, 
 
 ## 🏗️ Tech Stack
 
-| Technology          | Purpose             |
-| ------------------- | ------------------- |
-| FastAPI             | Web framework       |
-| SQLModel            | ORM and data models |
-| SQLAlchemy          | Database engine     |
-| PostgreSQL / SQLite | Database            |
-| Pydantic            | Data validation     |
-| JWT                 | Authentication      |
-| Passlib             | Password hashing    |
-| Alembic             | Database migrations |
-| Uvicorn             | ASGI server         |
+| Technology | Purpose             |
+| ---------- | ------------------- |
+| FastAPI    | Web framework       |
+| SQLModel   | ORM and data models |
+| SQLAlchemy | Database engine     |
+| SQLite     | Database            |
+| Pydantic   | Data validation     |
+| JWT        | Authentication      |
+| Passlib    | Password hashing    |
+| Alembic    | Database migrations |
+| Uvicorn    | ASGI server         |
 
 ---
 
